@@ -22,7 +22,7 @@ Three versions below. Start with the **Primary post**. Keep the **Pinned reply**
 >
 > The demo runs in **mock mode** — zero external credentials — with documented 1-line swap-ins for Clearbit, Apollo, HubSpot, OpenAI, Slack, and Gmail.
 >
-> Repo (workflows, evidence JSONs, full operator docs): https://github.com/<YOUR_USERNAME>/lead-generation-engine
+> Repo (workflows, evidence JSONs, full operator docs): https://github.com/HustleDanie/lead-generation-engine
 >
 > #n8n #WorkflowAutomation #LeadGen #AIEngineering #CRM
 
@@ -52,7 +52,7 @@ Three versions below. Start with the **Primary post**. Keep the **Pinned reply**
 >
 > 4 tiers verified, mock-mode demo, zero creds.
 >
-> https://github.com/<YOUR_USERNAME>/lead-generation-engine
+> https://github.com/HustleDanie/lead-generation-engine
 
 ---
 

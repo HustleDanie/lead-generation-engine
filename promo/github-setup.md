@@ -77,11 +77,11 @@ git add README.md promo/ docs/ evidence/ workflows/ CLAUDE.md .gitignore
 git status
 git commit -m "Initial commit: Lead Generation Engine (workflows, docs, evidence, promo)"
 
-git remote add origin https://github.com/<YOUR_USERNAME>/lead-generation-engine.git
+git remote add origin https://github.com/HustleDanie/lead-generation-engine.git
 git push -u origin main
 ```
 
-Replace `<YOUR_USERNAME>` with your GitHub handle.
+Replace `HustleDanie` with your GitHub handle.
 
 3. On github.com, click the ⚙️ next to "About" on the repo page and add:
    - **Description:** `3-stage n8n lead pipeline: capture → enrichment → scored routing. 4 tiers, duplicate gating, dedicated error workflow.`

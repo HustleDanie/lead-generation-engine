@@ -150,7 +150,7 @@ The rendered hot-lead Slack message, straight from execution #5:
 
 > :fire: New HOT lead: **Bob Hot** (CTO) at **Notion** — score 90. Executive title at 250-employee company with $50000000 revenue
 
-Validation: `validate_workflow` clean under `profile: "runtime"` on both workflows. Raw execution exports in [`evidence/`](https://github.com/<YOUR_USERNAME>/lead-generation-engine/tree/main/evidence).
+Validation: `validate_workflow` clean under `profile: "runtime"` on both workflows. Raw execution exports in [`evidence/`](https://github.com/HustleDanie/lead-generation-engine/tree/main/evidence).
 
 ---
 
@@ -158,7 +158,7 @@ Validation: `validate_workflow` clean under `profile: "runtime"` on both workflo
 
 **JSX target:** bottom-of-page CTA card with the two buttons.
 
-**Primary CTA:** View the repo → `https://github.com/<YOUR_USERNAME>/lead-generation-engine`
+**Primary CTA:** View the repo → `https://github.com/HustleDanie/lead-generation-engine`
 
 **Secondary CTA:** Read the operator reference → `/projects/lead-generation-engine/docs` (or link directly to the `docs/lead-generation-engine.md` on GitHub — your call)
 
@@ -177,4 +177,4 @@ Closing line (optional, above the buttons):
 - [ ] Replace the problem, architecture, feature, results, CTA blocks with sections 4–9
 - [ ] Swap the hero image (or reuse an existing automation-themed asset)
 - [ ] Add the new project to your `app/projects/page.tsx` index / project list
-- [ ] Fill in `<YOUR_USERNAME>` in the two repo links
+- [ ] Fill in `HustleDanie` in the two repo links
