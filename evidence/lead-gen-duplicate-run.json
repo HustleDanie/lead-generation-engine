@@ -1,0 +1,34 @@
+{
+  "description": "DUPLICATE short-circuit — second submission of alice@airbnb.com (first submission was execution 4, tier=hot). Dedupe splits on Normalize Lead output: rowExists path fires → Log Duplicate only. Enrichment, scoring, and routing are ALL skipped (saves API spend).",
+  "executionId": "8",
+  "workflowId": "lPgbSzFg5XHLZUxs",
+  "status": "success",
+  "durationMs": 110,
+  "input": {
+    "field-0": "Alice Hot Duplicate",
+    "field-1": "alice@airbnb.com",
+    "field-2": "Airbnb",
+    "field-3": "Director of Product",
+    "field-4": "Second submission"
+  },
+  "keyNodeOutputs": {
+    "Log Duplicate": {
+      "email": "alice@airbnb.com",
+      "name": "Alice Hot Duplicate",
+      "company": "Airbnb",
+      "tier": "n/a",
+      "score": 0,
+      "status": "duplicate",
+      "source": "dedupe",
+      "notification_channel": "none"
+    }
+  },
+  "verification": {
+    "clearbitMockRan": false,
+    "apolloMockRan": false,
+    "scoreLeadRan": false,
+    "insertContactRan": false,
+    "notificationsFired": false,
+    "activityLogRow": "single 'duplicate' row — no phantom 'notified' row"
+  }
+}

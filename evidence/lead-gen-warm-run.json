@@ -1,0 +1,36 @@
+{
+  "description": "WARM tier path — Carol@google.com, Senior Manager. Clearbit mock misses (google.com not in Clearbit list), Apollo fallback hits, rule engine returns tier=warm/score=55, routes to Email Digest, logs to activity table.",
+  "executionId": "6",
+  "workflowId": "lPgbSzFg5XHLZUxs",
+  "status": "success",
+  "durationMs": 247,
+  "input": {
+    "field-0": "Carol Warm",
+    "field-1": "carol@google.com",
+    "field-2": "Google",
+    "field-3": "Senior Manager",
+    "field-4": "Checking features"
+  },
+  "keyNodeOutputs": {
+    "Score Lead (Rule Engine)": {
+      "tier": "warm",
+      "score_num": 55,
+      "reasoning": "Mid-level profile (title=senior manager, size=45)",
+      "enriched_by": "apollo",
+      "clearbit_miss": true
+    },
+    "Route by Tier": {
+      "routedTo": "output[1] (warm)"
+    },
+    "Email Digest (Mock)": {
+      "notification_channel": "gmail:sales-manager@example.com",
+      "notification_message": "[Warm Lead Digest] Carol Warm — Google — Senior Manager — score 55"
+    },
+    "Log Warm Activity": {
+      "tier": "warm",
+      "score": 55,
+      "status": "notified",
+      "source": "apollo"
+    }
+  }
+}

@@ -1,0 +1,1317 @@
+{
+  "name": "Lead Generation Engine",
+  "nodes": [
+    {
+      "id": "form-trigger",
+      "name": "New Lead Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        400
+      ],
+      "parameters": {
+        "formTitle": "New Lead Intake",
+        "formDescription": "Tell us about yourself — we'll get back to you shortly.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Work Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Job Title",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "What brings you here?",
+              "fieldType": "textarea",
+              "requiredField": false
+            }
+          ]
+        },
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "2c296b25-fa3b-44c3-b26b-2bc69c793773"
+    },
+    {
+      "id": "validate-email",
+      "name": "Validate Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        460,
+        400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json['Work Email'] }}",
+              "rightValue": ""
+            },
+            {
+              "id": "c2",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "leftValue": "={{ $json['Work Email'] }}",
+              "rightValue": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Normalize Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        680,
+        340
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "n1",
+              "name": "email",
+              "type": "string",
+              "value": "={{ ($json['Work Email'] || '').toLowerCase().trim() }}"
+            },
+            {
+              "id": "n2",
+              "name": "name",
+              "type": "string",
+              "value": "={{ $json['Full Name'] || '' }}"
+            },
+            {
+              "id": "n3",
+              "name": "company",
+              "type": "string",
+              "value": "={{ $json['Company'] || '' }}"
+            },
+            {
+              "id": "n4",
+              "name": "jobTitle",
+              "type": "string",
+              "value": "={{ $json['Job Title'] || '' }}"
+            },
+            {
+              "id": "n5",
+              "name": "message",
+              "type": "string",
+              "value": "={{ $json['What brings you here?'] || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dedupe-new",
+      "name": "Dedupe — New Lead?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        260
+      ],
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Xr0poCxlcDKgwZjg"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dedupe-existing",
+      "name": "Dedupe — Duplicate?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        460
+      ],
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Xr0poCxlcDKgwZjg"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "log-duplicate",
+      "name": "Log Duplicate",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        460
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "HcJfpPtUqnMszQ9c"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "tier": "n/a",
+            "score": 0,
+            "status": "duplicate",
+            "source": "dedupe",
+            "notification_channel": "none"
+          },
+          "schema": [
+            {
+              "id": "timestamp",
+              "type": "date",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "timestamp",
+              "defaultMatch": false
+            },
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false
+            },
+            {
+              "id": "name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "name",
+              "defaultMatch": false
+            },
+            {
+              "id": "company",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "company",
+              "defaultMatch": false
+            },
+            {
+              "id": "tier",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "tier",
+              "defaultMatch": false
+            },
+            {
+              "id": "score",
+              "type": "number",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "score",
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "status",
+              "defaultMatch": false
+            },
+            {
+              "id": "source",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "source",
+              "defaultMatch": false
+            },
+            {
+              "id": "notification_channel",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "notification_channel",
+              "defaultMatch": false
+            }
+          ],
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "clearbit-mock",
+      "name": "Clearbit Mock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        260
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst enriched = ['stripe.com','airbnb.com','shopify.com','notion.so','linear.app','vercel.com','anthropic.com'];\nconst out = [];\nfor (const item of items) {\n  const email = item.json.email || '';\n  const domain = email.split('@')[1] || '';\n  if (enriched.includes(domain)) {\n    out.push({ json: { ...item.json, enriched_by: 'clearbit', title: item.json.jobTitle || 'VP of Engineering', linkedin: 'https://linkedin.com/in/' + (email.split('@')[0] || 'unknown'), company_size: 250, industry: 'Software', revenue: 50000000, tech_stack: 'n8n, AWS, Postgres' } });\n  } else {\n    out.push({ json: { ...item.json, enriched_by: null, clearbit_miss: true } });\n  }\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "clearbit-hit",
+      "name": "Clearbit Hit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1340,
+        260
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ch1",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.enriched_by }}",
+              "rightValue": "clearbit"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "apollo-mock",
+      "name": "Apollo Fallback Mock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        380
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst apollo = ['google.com','meta.com','microsoft.com','example.com','acme.io','techco.com'];\nconst out = [];\nfor (const item of items) {\n  const email = item.json.email || '';\n  const domain = email.split('@')[1] || '';\n  if (apollo.includes(domain)) {\n    out.push({ json: { ...item.json, enriched_by: 'apollo', title: item.json.jobTitle || 'Senior Manager', linkedin: 'https://linkedin.com/in/' + (email.split('@')[0] || 'unknown'), company_size: 45, industry: 'Technology', revenue: 5000000, tech_stack: '' } });\n  } else {\n    out.push({ json: { ...item.json, enriched_by: 'none', apollo_miss: true, title: item.json.jobTitle || '', linkedin: '', company_size: 0, industry: '', revenue: 0, tech_stack: '' } });\n  }\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "merge-enrichment",
+      "name": "Merge Enrichment",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1780,
+        320
+      ],
+      "parameters": {
+        "mode": "append"
+      }
+    },
+    {
+      "id": "score-lead",
+      "name": "Score Lead (Rule Engine)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        320
+      ],
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst out = [];\nfor (const item of items) {\n  const d = item.json;\n  const title = (d.title || '').toLowerCase();\n  const size = Number(d.company_size) || 0;\n  const revenue = Number(d.revenue) || 0;\n  const enrichedBy = d.enriched_by;\n  const isExec = /\\b(chief|cto|ceo|cfo|coo|cpo|cmo|vp|vice president|director|head of)\\b/.test(title);\n  const isMgr = /\\b(manager|lead|principal|senior)\\b/.test(title);\n  let tier, reasoning, score;\n  if (!enrichedBy || enrichedBy === 'none') { tier = 'cold'; score = 10; reasoning = 'No enrichment data — cannot qualify'; }\n  else if (isExec && (size >= 50 || revenue >= 10000000)) { tier = 'hot'; score = 90; reasoning = 'Executive title at ' + size + '-employee company with $' + revenue + ' revenue'; }\n  else if (isExec || isMgr || size >= 10) { tier = 'warm'; score = 55; reasoning = 'Mid-level profile (title=' + (title || 'unknown') + ', size=' + size + ')'; }\n  else { tier = 'cold'; score = 25; reasoning = 'Thin profile or small company'; }\n  out.push({ json: { ...d, tier, reasoning, score_num: score } });\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "insert-contact",
+      "name": "Insert Contact",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2220,
+        320
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Xr0poCxlcDKgwZjg"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "job_title": "={{ $json.title || $json.jobTitle || '' }}",
+            "enrichment_source": "={{ $json.enriched_by || 'none' }}",
+            "lead_tier": "={{ $json.tier }}",
+            "lead_score": "={{ $json.score_num }}",
+            "scoring_reasoning": "={{ $json.reasoning }}",
+            "nurture_sequence": "={{ $json.tier === 'cold' }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false
+            },
+            {
+              "id": "name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "name",
+              "defaultMatch": false
+            },
+            {
+              "id": "company",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "company",
+              "defaultMatch": false
+            },
+            {
+              "id": "job_title",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "job_title",
+              "defaultMatch": false
+            },
+            {
+              "id": "enrichment_source",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "enrichment_source",
+              "defaultMatch": false
+            },
+            {
+              "id": "lead_tier",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "lead_tier",
+              "defaultMatch": false
+            },
+            {
+              "id": "lead_score",
+              "type": "number",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "lead_score",
+              "defaultMatch": false
+            },
+            {
+              "id": "scoring_reasoning",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "scoring_reasoning",
+              "defaultMatch": false
+            },
+            {
+              "id": "nurture_sequence",
+              "type": "boolean",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "nurture_sequence",
+              "defaultMatch": false
+            },
+            {
+              "id": "created_at",
+              "type": "date",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "created_at",
+              "defaultMatch": false
+            }
+          ],
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "switch-tier",
+      "name": "Route by Tier",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2440,
+        320
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": false,
+                  "typeValidation": "loose"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r-hot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.lead_tier }}",
+                    "rightValue": "hot"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "hot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": false,
+                  "typeValidation": "loose"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r-warm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.lead_tier }}",
+                    "rightValue": "warm"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "warm"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": false,
+                  "typeValidation": "loose"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "r-cold",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.lead_tier }}",
+                    "rightValue": "cold"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "cold"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "hot-notif",
+      "name": "Slack SDR Alert (Mock)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        160
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "h1",
+              "name": "notification_channel",
+              "type": "string",
+              "value": "slack:#sales-hot-leads"
+            },
+            {
+              "id": "h2",
+              "name": "notification_message",
+              "type": "string",
+              "value": "=:fire: New HOT lead: *{{ $json.name }}* ({{ $json.job_title }}) at *{{ $json.company }}* — score {{ $json.lead_score }}. {{ $json.scoring_reasoning }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "warm-notif",
+      "name": "Email Digest (Mock)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        320
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "w1",
+              "name": "notification_channel",
+              "type": "string",
+              "value": "gmail:sales-manager@example.com"
+            },
+            {
+              "id": "w2",
+              "name": "notification_message",
+              "type": "string",
+              "value": "=[Warm Lead Digest] {{ $json.name }} — {{ $json.company }} — {{ $json.job_title }} — score {{ $json.lead_score }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "cold-notif",
+      "name": "Nurture Queue (Mock)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        480
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "co1",
+              "name": "notification_channel",
+              "type": "string",
+              "value": "hubspot:nurture_sequence"
+            },
+            {
+              "id": "co2",
+              "name": "notification_message",
+              "type": "string",
+              "value": "=Added to nurture sequence: {{ $json.name }} at {{ $json.company }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "log-hot",
+      "name": "Log Hot Activity",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        160
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "HcJfpPtUqnMszQ9c"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "tier": "={{ $json.lead_tier }}",
+            "score": "={{ $json.lead_score }}",
+            "status": "notified",
+            "source": "={{ $json.enrichment_source || 'none' }}",
+            "notification_channel": "={{ $json.notification_channel }}"
+          },
+          "schema": [
+            {
+              "id": "timestamp",
+              "type": "date",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "timestamp",
+              "defaultMatch": false
+            },
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false
+            },
+            {
+              "id": "name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "name",
+              "defaultMatch": false
+            },
+            {
+              "id": "company",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "company",
+              "defaultMatch": false
+            },
+            {
+              "id": "tier",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "tier",
+              "defaultMatch": false
+            },
+            {
+              "id": "score",
+              "type": "number",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "score",
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "status",
+              "defaultMatch": false
+            },
+            {
+              "id": "source",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "source",
+              "defaultMatch": false
+            },
+            {
+              "id": "notification_channel",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "notification_channel",
+              "defaultMatch": false
+            }
+          ],
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "log-warm",
+      "name": "Log Warm Activity",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        320
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "HcJfpPtUqnMszQ9c"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "tier": "={{ $json.lead_tier }}",
+            "score": "={{ $json.lead_score }}",
+            "status": "notified",
+            "source": "={{ $json.enrichment_source || 'none' }}",
+            "notification_channel": "={{ $json.notification_channel }}"
+          },
+          "schema": [
+            {
+              "id": "timestamp",
+              "type": "date",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "timestamp",
+              "defaultMatch": false
+            },
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false
+            },
+            {
+              "id": "name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "name",
+              "defaultMatch": false
+            },
+            {
+              "id": "company",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "company",
+              "defaultMatch": false
+            },
+            {
+              "id": "tier",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "tier",
+              "defaultMatch": false
+            },
+            {
+              "id": "score",
+              "type": "number",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "score",
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "status",
+              "defaultMatch": false
+            },
+            {
+              "id": "source",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "source",
+              "defaultMatch": false
+            },
+            {
+              "id": "notification_channel",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "notification_channel",
+              "defaultMatch": false
+            }
+          ],
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "log-cold",
+      "name": "Log Cold Activity",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        480
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "HcJfpPtUqnMszQ9c"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "company": "={{ $json.company }}",
+            "tier": "={{ $json.lead_tier }}",
+            "score": "={{ $json.lead_score }}",
+            "status": "notified",
+            "source": "={{ $json.enrichment_source || 'none' }}",
+            "notification_channel": "={{ $json.notification_channel }}"
+          },
+          "schema": [
+            {
+              "id": "timestamp",
+              "type": "date",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "timestamp",
+              "defaultMatch": false
+            },
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false
+            },
+            {
+              "id": "name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "name",
+              "defaultMatch": false
+            },
+            {
+              "id": "company",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "company",
+              "defaultMatch": false
+            },
+            {
+              "id": "tier",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "tier",
+              "defaultMatch": false
+            },
+            {
+              "id": "score",
+              "type": "number",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "score",
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "status",
+              "defaultMatch": false
+            },
+            {
+              "id": "source",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "source",
+              "defaultMatch": false
+            },
+            {
+              "id": "notification_channel",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "notification_channel",
+              "defaultMatch": false
+            }
+          ],
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "New Lead Form": {
+      "main": [
+        [
+          {
+            "node": "Validate Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Email": {
+      "main": [
+        [
+          {
+            "node": "Normalize Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Normalize Lead": {
+      "main": [
+        [
+          {
+            "node": "Dedupe — New Lead?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dedupe — Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedupe — Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Log Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedupe — New Lead?": {
+      "main": [
+        [
+          {
+            "node": "Clearbit Mock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clearbit Mock": {
+      "main": [
+        [
+          {
+            "node": "Clearbit Hit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clearbit Hit?": {
+      "main": [
+        [
+          {
+            "node": "Merge Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Apollo Fallback Mock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo Fallback Mock": {
+      "main": [
+        [
+          {
+            "node": "Merge Enrichment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Score Lead (Rule Engine)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Lead (Rule Engine)": {
+      "main": [
+        [
+          {
+            "node": "Insert Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Contact": {
+      "main": [
+        [
+          {
+            "node": "Route by Tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Tier": {
+      "main": [
+        [
+          {
+            "node": "Slack SDR Alert (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Digest (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nurture Queue (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack SDR Alert (Mock)": {
+      "main": [
+        [
+          {
+            "node": "Log Hot Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Digest (Mock)": {
+      "main": [
+        [
+          {
+            "node": "Log Warm Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nurture Queue (Mock)": {
+      "main": [
+        [
+          {
+            "node": "Log Cold Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "dKh8YrXQS07DPbnQ",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "active": true
+}

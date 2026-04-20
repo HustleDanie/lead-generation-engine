@@ -1,0 +1,38 @@
+{
+  "description": "COLD tier path — Dave@unknown-co.xyz, Student. Both Clearbit and Apollo mocks miss (domain not in either list), rule engine returns tier=cold/score=10 with reason 'No enrichment data', routes to Nurture Queue, logs to activity table.",
+  "executionId": "7",
+  "workflowId": "lPgbSzFg5XHLZUxs",
+  "status": "success",
+  "durationMs": 244,
+  "input": {
+    "field-0": "Dave Cold",
+    "field-1": "dave@unknown-co.xyz",
+    "field-2": "Unknown Co",
+    "field-3": "Student",
+    "field-4": "Curious"
+  },
+  "keyNodeOutputs": {
+    "Score Lead (Rule Engine)": {
+      "tier": "cold",
+      "score_num": 10,
+      "reasoning": "No enrichment data — cannot qualify",
+      "enriched_by": "none",
+      "clearbit_miss": true,
+      "apollo_miss": true
+    },
+    "Route by Tier": {
+      "routedTo": "output[2] (cold)"
+    },
+    "Nurture Queue (Mock)": {
+      "notification_channel": "hubspot:nurture_sequence",
+      "notification_message": "Added to nurture sequence: Dave Cold at Unknown Co",
+      "nurture_sequence": true
+    },
+    "Log Cold Activity": {
+      "tier": "cold",
+      "score": 10,
+      "status": "notified",
+      "source": "none"
+    }
+  }
+}

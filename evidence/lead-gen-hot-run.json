@@ -1,0 +1,38 @@
+{
+  "description": "HOT tier path — Bob@notion.so, CTO. Clearbit mock hits (enriched domain list), AI-equivalent rule engine returns tier=hot/score=90, routes to Slack SDR Alert, logs to activity table.",
+  "executionId": "5",
+  "workflowId": "lPgbSzFg5XHLZUxs",
+  "status": "success",
+  "durationMs": 1547,
+  "input": {
+    "field-0": "Bob Hot",
+    "field-1": "bob@notion.so",
+    "field-2": "Notion",
+    "field-3": "CTO",
+    "field-4": "Enterprise inquiry"
+  },
+  "keyNodeOutputs": {
+    "Score Lead (Rule Engine)": {
+      "tier": "hot",
+      "score_num": 90,
+      "reasoning": "Executive title at 250-employee company with $50000000 revenue",
+      "enriched_by": "clearbit"
+    },
+    "Route by Tier": {
+      "routedTo": "output[0] (hot)",
+      "lead_tier": "hot",
+      "lead_score": 90
+    },
+    "Slack SDR Alert (Mock)": {
+      "notification_channel": "slack:#sales-hot-leads",
+      "notification_message": ":fire: New HOT lead: *Bob Hot* (CTO) at *Notion* — score 90. Executive title at 250-employee company with $50000000 revenue"
+    },
+    "Log Hot Activity": {
+      "tier": "hot",
+      "score": 90,
+      "status": "notified",
+      "source": "clearbit",
+      "notification_channel": "slack:#sales-hot-leads"
+    }
+  }
+}

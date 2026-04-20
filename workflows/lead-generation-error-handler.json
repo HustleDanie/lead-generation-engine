@@ -1,0 +1,66 @@
+{
+  "name": "Lead Generation — Error Handler",
+  "active": true,
+  "nodes": [
+    {
+      "id": "err-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {}
+    },
+    {
+      "id": "err-format",
+      "name": "Format Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "timestamp", "type": "string", "value": "={{ $now.toISO() }}" },
+            { "id": "a2", "name": "email", "type": "string", "value": "={{ ($json.execution && $json.execution.error && $json.execution.error.context ? $json.execution.error.context.email : null) || $json.email || 'unknown' }}" },
+            { "id": "a3", "name": "stage", "type": "string", "value": "={{ $json.execution && $json.execution.lastNodeExecuted ? $json.execution.lastNodeExecuted : 'unknown' }}" },
+            { "id": "a4", "name": "error_message", "type": "string", "value": "={{ $json.execution && $json.execution.error && $json.execution.error.message ? $json.execution.error.message : 'unknown' }}" },
+            { "id": "a5", "name": "raw_payload", "type": "string", "value": "={{ JSON.stringify($json) }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "err-log",
+      "name": "Log Failure",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [680, 300],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": { "__rl": true, "mode": "id", "value": "mTzRsyI7awVGmNGd" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "email": "={{ $json.email }}",
+            "stage": "={{ $json.stage }}",
+            "error_message": "={{ $json.error_message }}",
+            "raw_payload": "={{ $json.raw_payload }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": { "main": [[{ "node": "Format Error", "type": "main", "index": 0 }]] },
+    "Format Error":  { "main": [[{ "node": "Log Failure",  "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
